@@ -11,7 +11,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { Input } from "@/components/ui/custom/input";
+import { Input } from "@/components/ui_/input";
 import {
   FormControl,
   FormField,
@@ -32,7 +32,8 @@ import { clsx } from "clsx";
 import { useState } from "react";
 import { PopoverAnchor } from "@radix-ui/react-popover";
 import PhoneInput from "react-phone-number-input/input";
-import { Label } from "./ui/label";
+import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
 
 export const TextInputField = ({
   form,
@@ -94,7 +95,16 @@ export const TextInputField = ({
   );
 };
 
-export const NumberInputField = (props: {
+export const NumberInputField = ({
+  form,
+  name,
+  placeholder,
+  label,
+  className,
+  disabled,
+  min,
+  max,
+}: {
   form: UseFormReturn<any>;
   name: string;
   placeholder: string;
@@ -102,30 +112,32 @@ export const NumberInputField = (props: {
   className?: string;
   disabled?: boolean;
   min?: number;
+  max?: number;
 }) => {
   return (
     <FormField
-      control={props.form.control}
-      name={props.name}
+      control={form.control}
+      name={name}
       render={({ field, fieldState }) => (
-        <FormItem className={props.className}>
-          {props.label && (
+        <FormItem className={className}>
+          {label && (
             <div className="ml-1 flex min-h-5 items-center space-x-2">
-              <FormLabel>{props.label}</FormLabel>
+              <FormLabel>{label}</FormLabel>
               <FormMessage />
             </div>
           )}
           <FormControl>
             <Input
               {...field}
-              disabled={props.disabled}
+              disabled={disabled}
               className={clsx(
                 "disabled:cursor-default",
                 fieldState.invalid && "border-red-500",
               )}
-              placeholder={props.placeholder}
+              placeholder={placeholder}
               type="number"
-              min={props.min}
+              min={min}
+              max={max}
               onChange={(event) => field.onChange(+event.target.value)}
               onKeyDown={(event) => {
                 if (event.key === "Enter") {
@@ -246,7 +258,7 @@ export const SearchableInputField = ({
                   autoComplete="off"
                   className="disabled:cursor-default"
                   placeholder={placeholder}
-                // type={type}
+                  // type={type}
                 />
               </FormControl>
             </PopoverAnchor>
@@ -374,21 +386,23 @@ export const DateInputField = ({
   disabled,
   disabledDates,
   placeholder = "Pick a date",
+  initialFocus = false,
 }: {
   form: UseFormReturn<any>;
   name: string;
-  label: string;
+  label?: string;
   placeholder?: string;
   disabled?: boolean;
   className?: string;
   disabledDates?: (date: Date) => boolean;
+  initialFocus?: boolean;
 }) => {
   return (
     <FormField
       control={form.control}
       name={name}
       render={({ field, fieldState }) => (
-        <FormItem className="flex flex-col">
+        <FormItem>
           {label && (
             <div className="ml-1 flex min-h-5 items-center justify-between space-x-2">
               <Label>{label}</Label>
@@ -401,10 +415,11 @@ export const DateInputField = ({
                 <Button
                   variant="outline"
                   disabled={disabled}
-                  className={clsx(
-                    "min-w-[140px] pl-3 text-left font-normal",
+                  className={cn(
+                    "h-10 min-w-[140px] pl-3 text-left font-normal",
                     !field.value && "text-muted-foreground",
                     fieldState.invalid && "border-red-500",
+                    className,
                   )}
                 >
                   {field.value ? format(field.value, "d MMM yyyy") : placeholder}
@@ -418,7 +433,7 @@ export const DateInputField = ({
                 selected={new Date(field.value)}
                 onSelect={(value) => field.onChange(format(value!, "yyyy-MM-dd"))}
                 disabled={disabledDates}
-                initialFocus
+                initialFocus={initialFocus}
               />
             </PopoverContent>
           </Popover>
