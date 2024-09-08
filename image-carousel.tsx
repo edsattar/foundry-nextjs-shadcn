@@ -11,7 +11,7 @@ import {
   CarouselPrevious,
   CarouselThumbItem,
   CarouselThumbs,
-} from "@/components/ui_/carousel";
+} from "./carousel";
 import { cn } from "@/lib/utils";
 
 export function ImageCarousel({

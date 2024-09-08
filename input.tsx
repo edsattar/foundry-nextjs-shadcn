@@ -7,7 +7,7 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(({ className, type, ...props }, ref) => {
   const [showPassword, setShowPassword] = React.useState(false);
-  const togglePasswordVisibility = () => setShowPassword(!showPassword);
+  const toggleVisibility = () => setShowPassword(!showPassword);
 
   return (
     <div className="relative">
@@ -23,9 +23,9 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(({ className, type,
       {type === "password" && (
         <div className="absolute inset-y-0 right-0 flex cursor-pointer items-center pr-3 text-gray-400">
           {showPassword ? (
-            <EyeIcon className="h-4 w-4" onClick={togglePasswordVisibility} />
+            <EyeIcon className="h-4 w-4" onClick={toggleVisibility} />
           ) : (
-            <EyeOffIcon className="h-4 w-4" onClick={togglePasswordVisibility} />
+            <EyeOffIcon className="h-4 w-4" onClick={toggleVisibility} />
           )}
         </div>
       )}
