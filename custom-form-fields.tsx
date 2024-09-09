@@ -1,6 +1,6 @@
 import { clsx } from "clsx";
 import { useState } from "react";
-import { format, formatISO } from "date-fns";
+import { format, formatISO, lightFormat } from "date-fns";
 import { DateRange } from "react-day-picker";
 import PhoneInput from "react-phone-number-input/input";
 import { CalendarIcon, CheckIcon, ChevronDown, ChevronsUpDownIcon } from "lucide-react";
@@ -150,7 +150,7 @@ export const NumberInputField = ({
           </FormControl>
           {errorMessage && (
             <div className="h-4 px-2">
-              <FormMessage className="text-right h-4 leading-tight overflow-hidden overflow-ellipsis text-nowrap" />
+              <FormMessage className="h-4 overflow-hidden overflow-ellipsis text-nowrap text-right leading-tight" />
             </div>
           )}
         </FormItem>
@@ -265,7 +265,7 @@ export const SearchableInputField = ({
                   autoComplete="off"
                   className="disabled:cursor-default"
                   placeholder={placeholder}
-                // type={type}
+                  // type={type}
                 />
               </FormControl>
             </PopoverAnchor>
@@ -476,9 +476,10 @@ export const DateRangeField = ({
   }
 
   function toDateRangeString(value: DateRange) {
+    if (!value) return { from: "", to: "" };
     return {
-      from: value.from ? formatISO(value.from) : "",
-      to: value.to ? formatISO(value.to) : "",
+      from: value.from ? lightFormat(value.from, "yyyy-MM-dd") : "",
+      to: value.to ? lightFormat(value.to, "yyyy-MM-dd") : "",
     };
   }
 
