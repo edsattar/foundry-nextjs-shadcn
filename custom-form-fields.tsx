@@ -1,21 +1,11 @@
-import { clsx } from "clsx";
-import { useState } from "react";
-import { format, formatISO, lightFormat } from "date-fns";
+import { format } from "date-fns";
 import { DateRange } from "react-day-picker";
 import PhoneInput from "react-phone-number-input/input";
-import { CalendarIcon, CheckIcon, ChevronDown, ChevronsUpDownIcon } from "lucide-react";
-import { UseFormReturn } from "react-hook-form";
+import { CalendarIcon, ChevronDown } from "lucide-react";
+import { UseFormReturn, FieldValues, Path } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
-import { Input } from "./input";
+import { Input, InputNumber, SpinVariant } from "./input";
 import {
   FormControl,
   FormField,
@@ -33,26 +23,25 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { PopoverAnchor } from "@radix-ui/react-popover";
 
-export const TextInputField = ({
+export const TextInputField = <TFieldValues extends FieldValues>({
   form,
   name,
   placeholder,
-  required,
+  disabled,
   label,
   className,
-  disabled,
+  required,
   type,
   maxLength,
 }: {
-  form: UseFormReturn<any>;
-  name: string;
+  form: UseFormReturn<TFieldValues>;
+  name: Path<TFieldValues>;
   placeholder: string;
-  required?: boolean;
+  disabled?: boolean;
   label?: string;
   className?: string;
-  disabled?: boolean;
+  required?: boolean;
   type?: "text" | "password" | "email";
   maxLength?: number;
 }) => {
@@ -70,14 +59,11 @@ export const TextInputField = ({
               </div>
             )}
             <FormControl>
-              <Input
+              <InputNumber
                 {...field}
                 disabled={disabled}
                 required={required}
-                className={clsx(
-                  "disabled:cursor-default",
-                  fieldState.invalid && "border-red-500",
-                )}
+                className={`disabled:cursor-default ${fieldState.invalid && "border-red-500"}`}
                 placeholder={placeholder}
                 type={type}
                 maxLength={maxLength}
@@ -95,60 +81,53 @@ export const TextInputField = ({
   );
 };
 
-export const NumberInputField = ({
+export const NumberInputField = <TFieldValues extends FieldValues>({
   form,
   name,
   placeholder,
   label,
   className,
   disabled,
-  errorMessage,
   min,
   max,
+  spinVariant,
+  showErrorMessage,
 }: {
-  form: UseFormReturn<any>;
-  name: string;
+  form: UseFormReturn<TFieldValues>;
+  name: Path<TFieldValues>;
   placeholder: string;
   label?: string;
   className?: string;
   disabled?: boolean;
-  errorMessage?: boolean;
   min?: number;
   max?: number;
+  spinVariant?: SpinVariant;
+  showErrorMessage?: boolean;
 }) => {
   return (
     <FormField
       control={form.control}
       name={name}
       render={({ field, fieldState }) => (
-        <FormItem className={clsx("space-y-0", className)}>
+        <FormItem className={className}>
           {label && (
             <div className="ml-1 flex min-h-5 items-center space-x-2">
               <FormLabel>{label}</FormLabel>
-              <FormMessage />
+              {/* <FormMessage /> */}
             </div>
           )}
           <FormControl>
-            <Input
+            <InputNumber
               {...field}
               disabled={disabled}
-              className={clsx(
-                "disabled:cursor-default",
-                fieldState.invalid && "border-red-500",
-              )}
+              className={`disabled:cursor-default ${fieldState.invalid && "border-red-500"}`}
               placeholder={placeholder}
-              type="number"
               min={min}
               max={max}
-              // onChange={(event) => field.onChange(event.target.value)}
-              onKeyDown={(event) => {
-                if (event.key === "Enter") {
-                  event.preventDefault();
-                }
-              }}
+              spinVariant={spinVariant}
             />
           </FormControl>
-          {errorMessage && (
+          {showErrorMessage && (
             <div className="h-4 px-2">
               <FormMessage className="h-4 overflow-hidden overflow-ellipsis text-nowrap text-right leading-tight" />
             </div>
@@ -159,14 +138,14 @@ export const NumberInputField = ({
   );
 };
 
-export const PhoneInputField = ({
+export const PhoneInputField = <TFieldValues extends FieldValues>({
   form,
   name,
   label,
   disabled,
 }: {
-  form: UseFormReturn<any>;
-  name: string;
+  form: UseFormReturn<TFieldValues>;
+  name: Path<TFieldValues>;
   label?: string;
   disabled?: boolean;
 }) => {
@@ -184,10 +163,7 @@ export const PhoneInputField = ({
           )}
           <FormControl>
             <PhoneInput
-              className={clsx(
-                "disabled:cursor-default",
-                fieldState.invalid && "border-red-500",
-              )}
+              className={`disabled:cursor-default ${fieldState.invalid && "border-red-500"}`}
               disabled={disabled}
               country="BD"
               international
@@ -203,189 +179,183 @@ export const PhoneInputField = ({
   );
 };
 
-export const SearchableInputField = ({
-  form,
-  name,
-  placeholder,
-  disabled = false,
-  className,
-  label,
-  list,
-  listHeading,
-  onSelect,
-}: {
-  form: UseFormReturn<any>;
-  name: string;
-  placeholder: string;
-  disabled?: boolean;
-  className?: string;
-  label?: string;
-  list: { [key: string]: any }[];
-  listHeading?: string;
-  onSelect: (item: any) => void;
-}) => {
-  const [open, setOpen] = useState(false);
-  const [filteredList, setFilteredList] = useState<{ [key: string]: any }[]>([]);
-  return (
-    <FormField
-      control={form.control}
-      name={name}
-      render={({ field }) => (
-        <FormItem className={className}>
-          {label && (
-            <div className="ml-1 flex min-h-5 items-center space-x-2">
-              <FormLabel>{label}</FormLabel>
-              <FormMessage />
-            </div>
-          )}
-          <Popover open={open} onOpenChange={setOpen}>
-            <PopoverAnchor asChild>
-              <FormControl>
-                <Input
-                  disabled={disabled}
-                  {...field}
-                  onChange={(event) => {
-                    field.onChange(event);
-                    if (event.target.value.length > 2) {
-                      const filtered = list.filter((item) => {
-                        return item[name]
-                          .toLowerCase()
-                          .includes(event.target.value.toLowerCase());
-                      });
-                      setFilteredList(filtered);
-                      if (filtered.length > 0) {
-                        setOpen(true);
-                      } else {
-                        setOpen(false);
-                      }
-                    } else {
-                      setOpen(false);
-                    }
-                  }}
-                  autoComplete="off"
-                  className="disabled:cursor-default"
-                  placeholder={placeholder}
-                  // type={type}
-                />
-              </FormControl>
-            </PopoverAnchor>
-            <PopoverContent
-              className="p-1"
-              onOpenAutoFocus={(event) => {
-                event.preventDefault();
-              }}
-            >
-              <Command shouldFilter={false}>
-                <CommandList>
-                  <CommandGroup
-                    heading={
-                      listHeading
-                        ? listHeading
-                        : `matching ${name}${filteredList.length > 1 ? "s" : ""}`
-                    }
-                  >
-                    {filteredList.map((item) => (
-                      <CommandItem
-                        key={item.id}
-                        value={item.id}
-                        onSelect={() => {
-                          form.setValue(name, item[name]);
-                          setOpen(false);
-                          onSelect(item);
-                        }}
-                      >
-                        {item[name]}
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                </CommandList>
-              </Command>
-            </PopoverContent>
-          </Popover>
-        </FormItem>
-      )}
-    />
-  );
-};
+// export const SearchableInputField = <TFieldValues extends FieldValues>({
+//   form,
+//   name,
+//   placeholder,
+//   disabled,
+//   className,
+//   label,
+//   list,
+//   listHeading,
+//   onSelect,
+// }: {
+//   form: UseFormReturn<TFieldValues>;
+//   name: Path<TFieldValues>;
+//   placeholder: string;
+//   disabled?: boolean;
+//   className?: string;
+//   label?: string;
+//   list: { [key: string]: any }[];
+//   listHeading?: string;
+//   onSelect: (item: any) => void;
+// }) => {
+//   const [open, setOpen] = useState(false);
+//   const [filteredList, setFilteredList] = useState<{ [key: string]: any }[]>([]);
+//   return (
+//     <FormField
+//       control={form.control}
+//       name={name}
+//       render={({ field }) => (
+//         <FormItem className={className}>
+//           {label && (
+//             <div className="ml-1 flex min-h-5 items-center space-x-2">
+//               <FormLabel>{label}</FormLabel>
+//               <FormMessage />
+//             </div>
+//           )}
+//           <Popover open={open} onOpenChange={setOpen}>
+//             <PopoverAnchor asChild>
+//               <FormControl>
+//                 <Input
+//                   disabled={disabled}
+//                   {...field}
+//                   onChange={(event) => {
+//                     field.onChange(event);
+//                     if (event.target.value.length > 2) {
+//                       const filtered = list.filter((item) => {
+//                         return item[name]
+//                           .toLowerCase()
+//                           .includes(event.target.value.toLowerCase());
+//                       });
+//                       setFilteredList(filtered);
+//                       if (filtered.length > 0) {
+//                         setOpen(true);
+//                       } else {
+//                         setOpen(false);
+//                       }
+//                     } else {
+//                       setOpen(false);
+//                     }
+//                   }}
+//                   autoComplete="off"
+//                   className="disabled:cursor-default"
+//                   placeholder={placeholder}
+//                   // type={type}
+//                 />
+//               </FormControl>
+//             </PopoverAnchor>
+//             <PopoverContent
+//               className="p-1"
+//               onOpenAutoFocus={(event) => {
+//                 event.preventDefault();
+//               }}
+//             >
+//               <Command shouldFilter={false}>
+//                 <CommandList>
+//                   <CommandGroup
+//                     heading={
+//                       listHeading
+//                         ? listHeading
+//                         : `matching ${name}${filteredList.length > 1 ? "s" : ""}`
+//                     }
+//                   >
+//                     {filteredList.map((item) => (
+//                       <CommandItem
+//                         key={item.id}
+//                         value={item.id}
+//                         onSelect={() => {
+//                           form.setValue(name, item[name]);
+//                           setOpen(false);
+//                           onSelect(item);
+//                         }}
+//                       >
+//                         {item[name]}
+//                       </CommandItem>
+//                     ))}
+//                   </CommandGroup>
+//                 </CommandList>
+//               </Command>
+//             </PopoverContent>
+//           </Popover>
+//         </FormItem>
+//       )}
+//     />
+//   );
+// };
 
-export const ComboBoxField = (props: {
-  form: UseFormReturn<any>;
-  name: string;
-  placeholder: string;
-  label?: string;
-  list: {
-    label: string;
-    value: string;
-  }[];
-  disabled?: boolean;
-}) => {
-  return (
-    <FormField
-      control={props.form.control}
-      name={props.name}
-      render={({ field }) => (
-        <FormItem className="w-full">
-          {props.label && (
-            <div className="ml-1 flex min-h-5 items-center space-x-2">
-              <FormLabel>{props.label}</FormLabel>
-              <FormMessage />
-            </div>
-          )}
-          <Popover>
-            <PopoverTrigger asChild>
-              <FormControl>
-                <Button
-                  variant="outline"
-                  role="combobox"
-                  disabled={props.disabled}
-                  className={clsx(
-                    "w-full justify-between",
-                    !field.value && "text-muted-foreground",
-                  )}
-                >
-                  {field.value
-                    ? props.list.find((item) => item.value === field.value)?.label
-                    : props.placeholder}
-                  <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                </Button>
-              </FormControl>
-            </PopoverTrigger>
-            <PopoverContent align="start" className="mr-4 p-0">
-              <Command>
-                <CommandInput placeholder="Search" />
-                <CommandList className="h-40">
-                  <CommandEmpty>No Match</CommandEmpty>
-                  <CommandGroup>
-                    {props.list.map((item) => (
-                      <CommandItem
-                        key={item.value}
-                        value={item.label}
-                        onSelect={() => {
-                          props.form.clearErrors(props.name);
-                          props.form.setValue(props.name, item.value);
-                        }}
-                      >
-                        <CheckIcon
-                          className={clsx(
-                            "mr-2 h-4 w-4",
-                            item.value === field.value ? "opacity-100" : "opacity-0",
-                          )}
-                        />
-                        {item.label}
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                </CommandList>
-              </Command>
-            </PopoverContent>
-          </Popover>
-        </FormItem>
-      )}
-    />
-  );
-};
+// export const ComboBoxField = <TFieldValues extends FieldValues>(props: {
+//   form: UseFormReturn<TFieldValues>;
+//   name: Path<TFieldValues>;
+//   placeholder: string;
+//   label?: string;
+//   disabled?: boolean;
+//   list: {
+//     label: string;
+//     value: string;
+//   }[];
+// }) => {
+//   return (
+//     <FormField
+//       control={props.form.control}
+//       name={props.name}
+//       render={({ field }) => (
+//         <FormItem className="w-full">
+//           {props.label && (
+//             <div className="ml-1 flex min-h-5 items-center space-x-2">
+//               <FormLabel>{props.label}</FormLabel>
+//               <FormMessage />
+//             </div>
+//           )}
+//           <Popover>
+//             <PopoverTrigger asChild>
+//               <FormControl>
+//                 <Button
+//                   variant="outline"
+//                   role="combobox"
+//                   disabled={props.disabled}
+//                   className={`w-full justify-between ${!field.value && "text-muted-foreground"}`}
+//                 >
+//                   {field.value
+//                     ? props.list.find((item) => item.value === field.value)?.label
+//                     : props.placeholder}
+//                   <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+//                 </Button>
+//               </FormControl>
+//             </PopoverTrigger>
+//             <PopoverContent align="start" className="mr-4 p-0">
+//               <Command>
+//                 <CommandInput placeholder="Search" />
+//                 <CommandList className="h-40">
+//                   <CommandEmpty>No Match</CommandEmpty>
+//                   <CommandGroup>
+//                     {props.list.map((item) => (
+//                       <CommandItem
+//                         key={item.value}
+//                         value={item.label}
+//                         onSelect={() => {
+//                           props.form.clearErrors(props.name);
+//                           props.form.setValue(props.name, item.value);
+//                         }}
+//                       >
+//                         <CheckIcon
+//                           className={`mr-2 h-4 w-4 ${item.value === field.value ? "opacity-100" : "opacity-0"}`}
+//                         />
+//                         {item.label}
+//                       </CommandItem>
+//                     ))}
+//                   </CommandGroup>
+//                 </CommandList>
+//               </Command>
+//             </PopoverContent>
+//           </Popover>
+//         </FormItem>
+//       )}
+//     />
+//   );
+// };
 
-export const DateInputField = ({
+export const DateInputField = <TFieldValues extends FieldValues>({
   className,
   form,
   name,
@@ -395,8 +365,8 @@ export const DateInputField = ({
   placeholder = "Pick a date",
   initialFocus = false,
 }: {
-  form: UseFormReturn<any>;
-  name: string;
+  form: UseFormReturn<TFieldValues>;
+  name: Path<TFieldValues>;
   label?: string;
   placeholder?: string;
   disabled?: boolean;
@@ -422,11 +392,7 @@ export const DateInputField = ({
                 <Button
                   variant="outline"
                   disabled={disabled}
-                  className={clsx(
-                    "h-10 w-full min-w-[140px] pl-3 text-left font-normal",
-                    !field.value && "text-muted-foreground",
-                    fieldState.invalid && "border-red-500",
-                  )}
+                  className={`h-10 w-full min-w-[140px] pl-3 text-left font-normal ${!field.value && "text-muted-foreground"} ${fieldState.invalid && "border-red-500"}`}
                 >
                   {field.value ? format(field.value, "d MMM yyyy") : placeholder}
                   <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
@@ -449,7 +415,7 @@ export const DateInputField = ({
   );
 };
 
-export const DateRangeField = ({
+export const DateRangeField = <TFieldValues extends FieldValues>({
   className,
   form,
   name,
@@ -459,8 +425,8 @@ export const DateRangeField = ({
   placeholder = "Pick a date",
   initialFocus = false,
 }: {
-  form: UseFormReturn<any>;
-  name: string;
+  form: UseFormReturn<TFieldValues>;
+  name: Path<TFieldValues>;
   label?: string;
   placeholder?: string;
   disabled?: boolean;
@@ -468,20 +434,30 @@ export const DateRangeField = ({
   disabledDates?: (date: Date) => boolean;
   initialFocus?: boolean;
 }) => {
-  function toDateRange(value: { from: string; to: string }) {
-    return {
-      from: value.from !== "" ? new Date(value.from) : undefined,
-      to: value.to !== "" ? new Date(value.to) : undefined,
-    };
-  }
+  // function toDateRange(value: { from: string; to: string }) {
+  //   return {
+  //     from: value.from !== "" ? new Date(value.from) : undefined,
+  //     to: value.to !== "" ? new Date(value.to) : undefined,
+  //   };
+  // }
+  //
+  // function toDateRangeString(value: DateRange) {
+  //   if (!value) return { from: "", to: "" };
+  //   return {
+  //     from: value.from ? lightFormat(value.from, "yyyy-MM-dd") : "",
+  //     to: value.to ? lightFormat(value.to, "yyyy-MM-dd") : "",
+  //   };
+  // }
 
-  function toDateRangeString(value: DateRange) {
-    if (!value) return { from: "", to: "" };
-    return {
-      from: value.from ? lightFormat(value.from, "yyyy-MM-dd") : "",
-      to: value.to ? lightFormat(value.to, "yyyy-MM-dd") : "",
-    };
-  }
+  const formatDateRange = (value: DateRange, placeholder: string) => {
+    if (value.from && value.to) {
+      return `${format(value.from, "d MMM")} - ${format(value.to, "d MMM")}`;
+    } else if (value.from) {
+      return format(value.from, "d MMM");
+    } else {
+      return placeholder;
+    }
+  };
 
   return (
     <FormField
@@ -489,41 +465,27 @@ export const DateRangeField = ({
       name={name}
       render={({ field, fieldState }) => (
         <FormItem className={className}>
-          {label && (
-            <div className="ml-1 flex min-h-5 items-center justify-between space-x-2">
-              <Label>{label}</Label>
-              <FormMessage />
-            </div>
-          )}
+          {label && <Label className="ml-1 h-5">{label}</Label>}
           <Popover>
             <PopoverTrigger asChild>
               <FormControl>
                 <Button
                   variant="outline"
                   disabled={disabled}
-                  className={clsx(
-                    "h-10 w-full min-w-[140px] pl-3 text-left font-normal",
-                    !field.value && "text-muted-foreground",
-                    fieldState.invalid && "border-red-500",
-                  )}
+                  className={`h-10 w-full min-w-36 px-3 font-normal max-[384px]:min-w-28 ${!field.value ? "text-muted-foreground" : ""} ${fieldState.invalid ? "border-red-500" : ""}`}
                 >
-                  {field.value?.from ? (
-                    <>
-                      {format(field.value.from, "d MMM")}
-                      {field.value.to ? ` - ${format(field.value.to, "d MMM")}` : ""}
-                    </>
-                  ) : (
-                    placeholder
-                  )}
-                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                  {formatDateRange(field.value, placeholder)}
+                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50 max-[384px]:hidden" />
                 </Button>
               </FormControl>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
               <Calendar
                 mode="range"
-                selected={toDateRange(field.value)}
-                onSelect={(value) => field.onChange(toDateRangeString(value!))}
+                // selected={toDateRange(field.value)}
+                // onSelect={(value) => field.onChange(toDateRangeString(value!))}
+                selected={field.value}
+                onSelect={(value) => field.onChange(value!)}
                 disabled={disabledDates}
                 initialFocus={initialFocus}
               />
@@ -535,7 +497,7 @@ export const DateRangeField = ({
   );
 };
 
-export const SelectField = ({
+export const SelectField = <TFieldValues extends FieldValues>({
   form,
   name,
   placeholder,
@@ -544,8 +506,8 @@ export const SelectField = ({
   className,
   disabled,
 }: {
-  form: UseFormReturn<any>;
-  name: string;
+  form: UseFormReturn<TFieldValues>;
+  name: Path<TFieldValues>;
   placeholder: string;
   list: {
     value: string;
@@ -572,11 +534,7 @@ export const SelectField = ({
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <SelectTrigger
                   disabled={disabled}
-                  className={clsx(
-                    "h-10 disabled:cursor-default",
-                    fieldState.invalid && "border-red-500",
-                    !field.value && "text-foreground/50",
-                  )}
+                  className={`h-10 disabled:cursor-default ${!field.value && "text-muted-foreground"} ${fieldState.invalid && "border-red-500"}`}
                 >
                   <SelectValue placeholder={placeholder} />
                 </SelectTrigger>
@@ -596,28 +554,26 @@ export const SelectField = ({
   );
 };
 
-export const SelectGridField = ({
+export const SelectGridField = <TFieldValues extends FieldValues>({
   form,
   name,
   label,
   placeholder,
   list,
-  className,
   disabled,
 }: {
-  form: UseFormReturn<any>;
-  name: string;
+  form: UseFormReturn<TFieldValues>;
+  name: Path<TFieldValues>;
   label: string;
   placeholder: string;
   list: { [key: string]: string | number }[];
-  className?: string;
   disabled?: boolean;
 }) => {
   return (
     <FormField
       control={form.control}
       name={name}
-      render={({ field }) => (
+      render={({ field, fieldState }) => (
         <FormItem className="w-full">
           <div className="ml-1 flex min-h-5 items-center space-x-2">
             {label && <FormLabel>{label}</FormLabel>}
@@ -630,11 +586,7 @@ export const SelectGridField = ({
           >
             <FormControl>
               <SelectTrigger
-                className={clsx(
-                  className,
-                  "disabled:cursor-default",
-                  !field.value && "text-muted-foreground",
-                )}
+                className={`disabled:cursor-default ${!field.value && "text-muted-foreground"} ${fieldState.invalid && "border-red-500"}`}
               >
                 {field.value ? <SelectValue /> : placeholder}
                 <ChevronDown className="h-4 w-4 opacity-50" />
@@ -646,11 +598,8 @@ export const SelectGridField = ({
                   <SelectItem
                     key={item.value}
                     value={String(item.value)}
-                    className={clsx(
-                      "w-10 justify-center",
-                      field.value === String(item.value) && "bg-foreground/10",
-                      (item.label as number) % 100 === 1 && "col-start-1", // TODO: only for room number
-                    )}
+                    // TODO: only for room number
+                    className={`w-10 justify-center ${field.value === String(item.value) && "bg-foreground/10"} ${(item.label as number) % 100 === 1 && "col-start-1"}`}
                   >
                     {item.label}
                   </SelectItem>
@@ -664,25 +613,21 @@ export const SelectGridField = ({
   );
 };
 
-export const SwitchField = ({
+export const SwitchField = <TFieldValues extends FieldValues>({
   form,
   name,
   label,
-  className,
 }: {
-  form: UseFormReturn<any>;
-  name: string;
+  form: UseFormReturn<TFieldValues>;
+  name: Path<TFieldValues>;
   label: string;
-  className?: string;
 }) => {
   return (
     <FormField
       control={form.control}
       name={name}
       render={({ field }) => (
-        <FormItem
-          className={clsx("flex items-center justify-between gap-2 space-y-0", className)}
-        >
+        <FormItem className="flex items-center justify-between gap-2 space-y-0">
           <FormLabel>{label}</FormLabel>
           <Switch checked={field.value} onCheckedChange={field.onChange} />
         </FormItem>
