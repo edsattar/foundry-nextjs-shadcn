@@ -1,10 +1,11 @@
 import { format } from "date-fns";
 import { DateRange } from "react-day-picker";
 import PhoneInput from "react-phone-number-input/input";
+import PhoneInputWithCountry, { Country } from "react-phone-number-input";
 import { CalendarIcon, ChevronDown } from "lucide-react";
 import { UseFormReturn, FieldValues, Path } from "react-hook-form";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
+import { Calendar, type CalendarProps } from "@/components/ui_/calendar";
 import { Input, InputNumber, SpinVariant } from "./input";
 import {
   FormControl,
@@ -23,6 +24,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { useCallback, useState } from "react";
 
 export const TextInputField = <TFieldValues extends FieldValues>({
   form,
@@ -59,7 +61,7 @@ export const TextInputField = <TFieldValues extends FieldValues>({
               </div>
             )}
             <FormControl>
-              <InputNumber
+              <Input
                 {...field}
                 disabled={disabled}
                 required={required}
@@ -143,38 +145,90 @@ export const PhoneInputField = <TFieldValues extends FieldValues>({
   name,
   label,
   disabled,
+  country,
+  countrySelect = false,
 }: {
   form: UseFormReturn<TFieldValues>;
   name: Path<TFieldValues>;
   label?: string;
   disabled?: boolean;
+  country?: Country;
+  countrySelect?: boolean;
 }) => {
+  const CountrySelect = ({
+    name,
+    value,
+    onChange,
+    options,
+  }: {
+    name: string;
+    value: string;
+    onChange: (value: string | undefined) => void;
+    options: {
+      value: string;
+      label: string;
+    }[];
+  }) => {
+    const onChange_ = useCallback(
+      (value: string) => onChange(value === "ZZ" ? "" : value),
+      [onChange],
+    );
+    return (
+      <Select name={name} value={value} onValueChange={onChange_}>
+        <SelectTrigger className="w-2/5 disabled:cursor-default" disabled={disabled}>
+          <SelectValue placeholder="International" />
+        </SelectTrigger>
+        <SelectContent>
+          {options.map((option, index) => (
+            <SelectItem key={index} value={option.value || "ZZ"}>
+              {option.value} - {option.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    );
+  };
+
   return (
     <FormField
       control={form.control}
       name={name}
-      render={({ field, fieldState }) => (
-        <FormItem>
-          {label && (
-            <div className="ml-1 flex min-h-5 items-center justify-between space-x-2">
-              <Label>{label}</Label>
-              <FormMessage />
-            </div>
-          )}
-          <FormControl>
-            <PhoneInput
-              className={`disabled:cursor-default ${fieldState.invalid && "border-red-500"}`}
-              disabled={disabled}
-              country="BD"
-              international
-              withCountryCallingCode
-              inputComponent={Input}
-              maxLength={16}
-              {...field}
-            />
-          </FormControl>
-        </FormItem>
-      )}
+      render={({ field, fieldState }) => {
+        return (
+          <FormItem>
+            {label && (
+              <div className="ml-1 flex min-h-5 items-center justify-between space-x-2">
+                <Label>{label}</Label>
+                <FormMessage />
+              </div>
+            )}
+            <FormControl>
+              {countrySelect ? (
+                <PhoneInputWithCountry
+                  className={`mt-0 flex gap-x-2 [&_input]:w-3/5 ${fieldState.invalid && "[&_input]:border-red-500"}`}
+                  disabled={disabled}
+                  defaultCountry="BD"
+                  countrySelectComponent={CountrySelect}
+                  inputComponent={Input}
+                  limitMaxLength
+                  international
+                  {...field}
+                />
+              ) : (
+                <PhoneInput
+                  className={fieldState.invalid && "border-red-500"}
+                  disabled={disabled}
+                  country={country}
+                  international
+                  withCountryCallingCode
+                  inputComponent={Input}
+                  {...field}
+                />
+              )}
+            </FormControl>
+          </FormItem>
+        );
+      }}
     />
   );
 };
@@ -361,10 +415,13 @@ export const DateInputField = <TFieldValues extends FieldValues>({
   name,
   label,
   disabled,
-  disabledDates,
   placeholder = "Pick a date",
+  disabledDates,
   initialFocus = false,
-}: {
+  fromMonth,
+  month,
+  onMonthChange,
+}: CalendarProps & {
   form: UseFormReturn<TFieldValues>;
   name: Path<TFieldValues>;
   label?: string;
@@ -372,8 +429,9 @@ export const DateInputField = <TFieldValues extends FieldValues>({
   disabled?: boolean;
   className?: string;
   disabledDates?: (date: Date) => boolean;
-  initialFocus?: boolean;
 }) => {
+  const [localMonth, setLocalMonth] = useState(new Date());
+
   return (
     <FormField
       control={form.control}
@@ -392,20 +450,39 @@ export const DateInputField = <TFieldValues extends FieldValues>({
                 <Button
                   variant="outline"
                   disabled={disabled}
-                  className={`h-10 w-full min-w-[140px] pl-3 text-left font-normal ${!field.value && "text-muted-foreground"} ${fieldState.invalid && "border-red-500"}`}
+                  className={`h-10 w-full min-w-[80px] px-2 text-left font-normal 2xs:px-3 ${!field.value && "text-muted-foreground"} ${fieldState.invalid && "border-red-500"}`}
                 >
-                  {field.value ? format(field.value, "d MMM yyyy") : placeholder}
-                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                  {field.value ? (
+                    <p>
+                      {format(field.value, "d MMM")}
+                      <span className="max-2xs:hidden"> {field.value.getFullYear()}</span>
+                      <span className="2xs:hidden"> &apos;{field.value.getFullYear() % 100}</span>
+                    </p>
+                  ) : (
+                    placeholder
+                  )}
+                  <CalendarIcon
+                    className={`ml-auto h-4 w-4 opacity-50 ${field.value ? "max-xs:hidden" : ""}`}
+                  />
                 </Button>
               </FormControl>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
               <Calendar
                 mode="single"
-                selected={new Date(field.value)}
-                onSelect={(value) => field.onChange(format(value!, "yyyy-MM-dd"))}
+                selected={field.value}
+                onSelect={(value?: Date) => {
+                  if (!value) return;
+                  // if (month.getMonth() !== value.getMonth()) {
+                  //   setMonth(value);
+                  // }
+                  field.onChange(value);
+                }}
+                month={month ?? localMonth}
+                onMonthChange={onMonthChange ?? setLocalMonth}
                 disabled={disabledDates}
-                initialFocus={initialFocus}
+                required
+                {...{ initialFocus, fromMonth }}
               />
             </PopoverContent>
           </Popover>
@@ -434,28 +511,13 @@ export const DateRangeField = <TFieldValues extends FieldValues>({
   disabledDates?: (date: Date) => boolean;
   initialFocus?: boolean;
 }) => {
-  // function toDateRange(value: { from: string; to: string }) {
-  //   return {
-  //     from: value.from !== "" ? new Date(value.from) : undefined,
-  //     to: value.to !== "" ? new Date(value.to) : undefined,
-  //   };
-  // }
-  //
-  // function toDateRangeString(value: DateRange) {
-  //   if (!value) return { from: "", to: "" };
-  //   return {
-  //     from: value.from ? lightFormat(value.from, "yyyy-MM-dd") : "",
-  //     to: value.to ? lightFormat(value.to, "yyyy-MM-dd") : "",
-  //   };
-  // }
-
-  const formatDateRange = (value: DateRange, placeholder: string) => {
+  const formatDateRange = (value: DateRange) => {
     if (value.from && value.to) {
       return `${format(value.from, "d MMM")} - ${format(value.to, "d MMM")}`;
     } else if (value.from) {
       return format(value.from, "d MMM");
     } else {
-      return placeholder;
+      return null;
     }
   };
 
@@ -465,29 +527,30 @@ export const DateRangeField = <TFieldValues extends FieldValues>({
       name={name}
       render={({ field, fieldState }) => (
         <FormItem className={className}>
-          {label && <Label className="ml-1 h-5">{label}</Label>}
+          {label && <Label className="h-5">{label}</Label>}
           <Popover>
             <PopoverTrigger asChild>
               <FormControl>
                 <Button
                   variant="outline"
                   disabled={disabled}
-                  className={`h-10 w-full min-w-36 px-3 font-normal max-[384px]:min-w-28 ${!field.value ? "text-muted-foreground" : ""} ${fieldState.invalid ? "border-red-500" : ""}`}
+                  className={`h-10 w-full min-w-36 px-3 font-normal max-[384px]:min-w-28 max-[384px]:px-1.5 ${!field.value ? "text-muted-foreground" : ""} ${fieldState.invalid ? "border-red-500" : ""}`}
                 >
-                  {formatDateRange(field.value, placeholder)}
-                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50 max-[384px]:hidden" />
+                  {formatDateRange(field.value) ?? placeholder}
+                  <CalendarIcon
+                    className={`ml-auto h-4 w-4 opacity-50 ${field.value.from ? "max-2xs:hidden" : ""}`}
+                  />
                 </Button>
               </FormControl>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
               <Calendar
+                initialFocus={initialFocus}
                 mode="range"
-                // selected={toDateRange(field.value)}
-                // onSelect={(value) => field.onChange(toDateRangeString(value!))}
                 selected={field.value}
                 onSelect={(value) => field.onChange(value!)}
+                numberOfMonths={2}
                 disabled={disabledDates}
-                initialFocus={initialFocus}
               />
             </PopoverContent>
           </Popover>

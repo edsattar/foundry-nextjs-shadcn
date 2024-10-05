@@ -8,13 +8,14 @@ import { Button } from "@/components/ui/button";
 import { cva, type VariantProps } from "class-variance-authority";
 
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {}
+
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
   ({ className, type, ...props }, ref) => {
     return (
       <input
         type={type}
         className={cn(
-          "flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50",
+          "flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-default disabled:opacity-50",
           className,
         )}
         ref={ref}
@@ -56,18 +57,21 @@ const InputPassword = React.forwardRef<HTMLInputElement, InputProps>(
 );
 InputPassword.displayName = "InputPassword";
 
-const spinVariants = cva("relative", {
-  variants: {
-    spinVariant: {
-      default: "",
-      none: "[&_input]:[-moz-appearance:textfield] [&_input]:[&::-webkit-inner-spin-button]:[-webkit-appearance:none]",
-      end: "[&_input]:[-moz-appearance:textfield] [&_input]:[&::-webkit-inner-spin-button]:[-webkit-appearance:none] [&_input]:pr-6 [&_div]:right-0",
+const spinVariants = cva(
+  "relative h-10 border border-input has-[input:disabled]:opacity-50",
+  {
+    variants: {
+      spinVariant: {
+        default: "",
+        none: "[&_input]:[-moz-appearance:textfield] [&_input]:[&::-webkit-inner-spin-button]:[-webkit-appearance:none]",
+        end: "[&_input]:[-moz-appearance:textfield] [&_input]:[&::-webkit-inner-spin-button]:[-webkit-appearance:none] [&_input]:pr-6 [&_div]:right-0",
+      },
+    },
+    defaultVariants: {
+      spinVariant: "default",
     },
   },
-  defaultVariants: {
-    spinVariant: "default",
-  },
-});
+);
 
 type SpinVariant = VariantProps<typeof spinVariants>["spinVariant"];
 
@@ -77,6 +81,7 @@ interface InputNumberProps
   incrementValue?: number;
   allowFloat?: boolean;
   value?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onChange: (...event: any[]) => void;
   min?: number;
   max?: number;
@@ -123,7 +128,6 @@ const InputNumber = React.forwardRef<HTMLInputElement, InputNumberProps>(
         intervalId.current = setInterval(increment, 100);
       }, 500);
     };
-
     const decrement = () => {
       setValue((prev) => {
         const float = parseFloat(prev);
@@ -163,7 +167,8 @@ const InputNumber = React.forwardRef<HTMLInputElement, InputNumberProps>(
             <Button
               size="icon"
               type="button"
-              className="h-1/2 w-full p-1"
+              className="h-1/2 w-full p-1 disabled:opacity-100"
+              disabled={props.disabled}
               onMouseDown={handleIncrement}
               onMouseUp={handleMouseUp}
               onMouseLeave={handleMouseUp}
@@ -173,7 +178,8 @@ const InputNumber = React.forwardRef<HTMLInputElement, InputNumberProps>(
             <Button
               size="icon"
               type="button"
-              className="h-1/2 w-full p-1"
+              className="h-1/2 w-full p-1 disabled:opacity-100"
+              disabled={props.disabled}
               onMouseDown={handleDecrement}
               onMouseUp={handleMouseUp}
               onMouseLeave={handleMouseUp}
@@ -191,7 +197,7 @@ const InputNumber = React.forwardRef<HTMLInputElement, InputNumberProps>(
           min={min}
           max={max}
           className={cn(
-            "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground placeholder:opacity-75 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+            "flex w-full rounded-md bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground placeholder:opacity-75 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed",
             className,
           )}
           onKeyDown={(event) => {
