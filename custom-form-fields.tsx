@@ -197,7 +197,7 @@ export const PhoneInputField = <TFieldValues extends FieldValues>({
         return (
           <FormItem>
             {label && (
-              <div className="ml-1 flex min-h-5 items-center justify-between space-x-2">
+              <div className="ml-1 flex min-h-5 items-center justify-between space-x-2 ">
                 <Label>{label}</Label>
                 <FormMessage />
               </div>
