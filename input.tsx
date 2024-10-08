@@ -27,14 +27,14 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 Input.displayName = "Input";
 
 const InputPassword = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, type, ...props }, ref) => {
+  ({ className, ...props }, ref) => {
     const [showPassword, setShowPassword] = React.useState(false);
     const toggleVisibility = () => setShowPassword(!showPassword);
 
     return (
       <div className="relative">
         <input
-          type={type === "password" ? (showPassword ? "text" : "password") : type}
+          type={showPassword ? "text" : "password"}
           className={cn(
             "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground placeholder:opacity-75 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
             className,
@@ -42,15 +42,13 @@ const InputPassword = React.forwardRef<HTMLInputElement, InputProps>(
           ref={ref}
           {...props}
         />
-        {type === "password" && (
-          <div className="absolute inset-y-0 right-0 flex cursor-pointer items-center pr-3 text-gray-400">
-            {showPassword ? (
-              <EyeIcon className="h-4 w-4" onClick={toggleVisibility} />
-            ) : (
-              <EyeOffIcon className="h-4 w-4" onClick={toggleVisibility} />
-            )}
-          </div>
-        )}
+        <div className="absolute inset-y-0 right-0 flex cursor-pointer items-center pr-3 text-gray-400">
+          {showPassword ? (
+            <EyeIcon className="h-4 w-4" onClick={toggleVisibility} />
+          ) : (
+            <EyeOffIcon className="h-4 w-4" onClick={toggleVisibility} />
+          )}
+        </div>
       </div>
     );
   },

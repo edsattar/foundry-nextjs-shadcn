@@ -6,7 +6,7 @@ import { CalendarIcon, ChevronDown } from "lucide-react";
 import { UseFormReturn, FieldValues, Path } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Calendar, type CalendarProps } from "@/components/ui_/calendar";
-import { Input, InputNumber, SpinVariant } from "./input";
+import { Input, InputNumber, InputPassword, SpinVariant } from "./input";
 import {
   FormControl,
   FormField,
@@ -61,20 +61,36 @@ export const TextInputField = <TFieldValues extends FieldValues>({
               </div>
             )}
             <FormControl>
-              <Input
-                {...field}
-                disabled={disabled}
-                required={required}
-                className={`disabled:cursor-default ${fieldState.invalid && "border-red-500"}`}
-                placeholder={placeholder}
-                type={type}
-                maxLength={maxLength}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter") {
-                    event.preventDefault();
-                  }
-                }}
-              />
+              {type === "password" ? (
+                <InputPassword
+                  {...field}
+                  disabled={disabled}
+                  required={required}
+                  className={`disabled:cursor-default ${fieldState.invalid && "border-red-500"}`}
+                  placeholder={placeholder}
+                  maxLength={maxLength}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") {
+                      event.preventDefault();
+                    }
+                  }}
+                />
+              ) : (
+                <Input
+                  {...field}
+                  disabled={disabled}
+                  required={required}
+                  className={`disabled:cursor-default ${fieldState.invalid && "border-red-500"}`}
+                  placeholder={placeholder}
+                  type={type}
+                  maxLength={maxLength}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") {
+                      event.preventDefault();
+                    }
+                  }}
+                />
+              )}
             </FormControl>
           </FormItem>
         );
@@ -197,7 +213,7 @@ export const PhoneInputField = <TFieldValues extends FieldValues>({
         return (
           <FormItem>
             {label && (
-              <div className="ml-1 flex min-h-5 items-center justify-between space-x-2 ">
+              <div className="ml-1 flex min-h-5 items-center justify-between space-x-2">
                 <Label>{label}</Label>
                 <FormMessage />
               </div>
@@ -456,7 +472,10 @@ export const DateInputField = <TFieldValues extends FieldValues>({
                     <p>
                       {format(field.value, "d MMM")}
                       <span className="max-2xs:hidden"> {field.value.getFullYear()}</span>
-                      <span className="2xs:hidden"> &apos;{field.value.getFullYear() % 100}</span>
+                      <span className="2xs:hidden">
+                        {" "}
+                        &apos;{field.value.getFullYear() % 100}
+                      </span>
                     </p>
                   ) : (
                     placeholder
