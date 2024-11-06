@@ -3,8 +3,8 @@
 import * as React from "react";
 import { EyeIcon, EyeOffIcon, MinusIcon, PlusIcon } from "lucide-react";
 
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
+import { cn } from "~/lib/utils";
+import { Button } from "~/components/ui/button";
 import { cva, type VariantProps } from "class-variance-authority";
 
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {}

@@ -4,8 +4,8 @@ import PhoneInput from "react-phone-number-input/input";
 import PhoneInputWithCountry, { Country } from "react-phone-number-input";
 import { CalendarIcon, ChevronDown } from "lucide-react";
 import { UseFormReturn, FieldValues, Path } from "react-hook-form";
-import { Button } from "@/components/ui/button";
-import { Calendar, type CalendarProps } from "@/components/ui_/calendar";
+import { Button } from "~/components/ui/button";
+import { Calendar, type CalendarProps } from "~/components/ui_/calendar";
 import { Input, InputNumber, InputPassword, SpinVariant } from "./input";
 import {
   FormControl,
@@ -13,17 +13,17 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { Label } from "@/components/ui/label";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+} from "~/components/ui/form";
+import { Label } from "~/components/ui/label";
+import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
+} from "~/components/ui/select";
+import { Switch } from "~/components/ui/switch";
 import { useCallback, useState } from "react";
 
 export const TextInputField = <TFieldValues extends FieldValues>({

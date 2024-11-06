@@ -3,7 +3,7 @@ import {
   AlertDescription,
   AlertTitle,
   iconVariants,
-} from "@/components/ui_/alert";
+} from "~/components/ui_/alert";
 
 type Props = {
   result: {

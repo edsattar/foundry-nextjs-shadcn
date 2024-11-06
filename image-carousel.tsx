@@ -12,7 +12,7 @@ import {
   CarouselThumbItem,
   CarouselThumbs,
 } from "./carousel";
-import { cn } from "@/lib/utils";
+import { cn } from "~/lib/utils";
 
 export function ImageCarousel({
   data,
